@@ -1,0 +1,9 @@
+AES_KEY_SIZE = 32        
+NONCE_SIZE = 12          
+BUFFER_SIZE = 64 * 1024  
+TAG_SIZE = 16            
+
+SALT_SIZE = 16           
+PBKDF2_ITERATIONS = 100_000
+
+MIN_PASSWORD_LENGTH = 8
