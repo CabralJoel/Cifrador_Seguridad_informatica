@@ -20,21 +20,11 @@ from crypto.key_manager import (
 
 
 def generate_nonce() -> bytes:
-    """
-    Genera un nonce seguro para AES-GCM.
-    """
 
     return os.urandom(NONCE_SIZE)
 
 
-def encrypt_file(
-    input_file: str,
-    output_file: str,
-    password: str
-) -> None:
-    """
-    Cifra un archivo utilizando AES-256-GCM.
-    """
+def encrypt_file(input_file: str,output_file: str,password: str) -> None:
 
     salt = generate_salt()
 
@@ -55,44 +45,32 @@ def encrypt_file(
     with open(input_file, "rb") as infile, \
          open(output_file, "wb") as outfile:
 
-        # Salt
         outfile.write(salt)
 
-        # Nonce
+
         outfile.write(nonce)
 
-        # Datos cifrados
         while True:
 
-            chunk = infile.read(
-                BUFFER_SIZE
-            )
+            chunk = infile.read(BUFFER_SIZE)
 
             if not chunk:
                 break
 
-            encrypted_chunk = encryptor.update(
-                chunk
-            )
+            encrypted_chunk = encryptor.update(chunk)
 
-            outfile.write(
-                encrypted_chunk
-            )
+            outfile.write(encrypted_chunk)
 
-        # Finalizar cifrado
-        outfile.write(
-            encryptor.finalize()
-        )
+        outfile.write(encryptor.finalize())
 
-        # Tag GCM
-        outfile.write(
-            encryptor.tag
-        )
+        outfile.write(encryptor.tag)
 
 
-def decrypt_file(input_file: str,output_file: str,password: str) -> None:
+def decrypt_file(input_file: str, output_file: str, password: str) -> None:
 
     file_size = os.path.getsize(input_file)
+
+    if file_size < (SALT_SIZE + NONCE_SIZE + TAG_SIZE):raise ValueError("El archivo cifrado es inválido.")
 
     with open(input_file, "rb") as infile:
 
@@ -110,24 +88,32 @@ def decrypt_file(input_file: str,output_file: str,password: str) -> None:
 
         decryptor = cipher.decryptor()
 
-        infile.seek(SALT_SIZE +NONCE_SIZE)
+        infile.seek(SALT_SIZE + NONCE_SIZE)
 
         ciphertext_size = (file_size- SALT_SIZE- NONCE_SIZE- TAG_SIZE)
 
         remaining = ciphertext_size
 
-        with open(output_file,"wb") as outfile:
+        try:
 
-            while remaining > 0:
+            with open(output_file,"wb") as outfile:
 
-                chunk_size = min(BUFFER_SIZE,remaining)
+                while remaining > 0:
 
-                chunk = infile.read(chunk_size)
+                    chunk_size = min(BUFFER_SIZE,remaining)
 
-                remaining -= len(chunk)
+                    chunk = infile.read( chunk_size)
 
-                decrypted_chunk = (decryptor.update(chunk))
+                    remaining -= len(chunk)
 
-                outfile.write(decrypted_chunk)
+                    decrypted_chunk = (decryptor.update( chunk))
 
-            outfile.write(decryptor.finalize())
+                    outfile.write(decrypted_chunk)
+
+                outfile.write(decryptor.finalize())
+
+        except Exception:
+
+            if os.path.exists(output_file):os.remove(output_file)
+
+            raise ValueError("Contraseña incorrecta.")
