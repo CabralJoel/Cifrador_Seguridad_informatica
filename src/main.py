@@ -3,15 +3,12 @@ import sys
 
 from getpass import getpass
 
-from crypto.aes_cipher import (
-    encrypt_file,
-    decrypt_file
-)
+from crypto.aes_cipher import (encrypt_file,decrypt_file)
 
 
 def show_usage() -> None:
 
-    print("Uso:\n""  python src/main.py encrypt <archivo>\n""  python src/main.py decrypt <archivo>")
+    print("Uso: ejecute alguna de las siguientyes lineas de comando\n""  python src/main.py encrypt <archivo>\n""  python src/main.py decrypt <archivo>")
 
 
 def main() -> None:

@@ -6,6 +6,8 @@ from cryptography.hazmat.primitives.ciphers import (
     modes
 )
 
+from cryptography.exceptions import InvalidTag
+
 from utils.constants import (
     NONCE_SIZE,
     BUFFER_SIZE,
@@ -70,7 +72,8 @@ def decrypt_file(input_file: str, output_file: str, password: str) -> None:
 
     file_size = os.path.getsize(input_file)
 
-    if file_size < (SALT_SIZE + NONCE_SIZE + TAG_SIZE):raise ValueError("El archivo cifrado es inválido.")
+    if file_size < (SALT_SIZE + NONCE_SIZE + TAG_SIZE):
+        raise ValueError("El archivo cifrado es inválido.")
 
     with open(input_file, "rb") as infile:
 
@@ -84,7 +87,10 @@ def decrypt_file(input_file: str, output_file: str, password: str) -> None:
 
         key = generate_key(password,salt)
 
-        cipher = Cipher(algorithms.AES(key),modes.GCM(nonce,tag))
+        cipher = Cipher(
+            algorithms.AES(key),
+            modes.GCM(nonce,tag)
+            )
 
         decryptor = cipher.decryptor()
 
@@ -112,8 +118,9 @@ def decrypt_file(input_file: str, output_file: str, password: str) -> None:
 
                 outfile.write(decryptor.finalize())
 
-        except Exception:
+        except InvalidTag:
 
-            if os.path.exists(output_file):os.remove(output_file)
+            if os.path.exists(output_file):
+                os.remove(output_file)
 
             raise ValueError("Contraseña incorrecta.")

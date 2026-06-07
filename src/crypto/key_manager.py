@@ -17,6 +17,8 @@ def generate_key(password: str,salt: bytes) -> bytes:
 
 def validate_password(password: str) -> None:
 
+    password = password.strip()
+
     if not password:
         raise ValueError("La contraseña no puede estar vacía.")
 
